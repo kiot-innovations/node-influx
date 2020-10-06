@@ -66,6 +66,8 @@ export interface IPoolRequestOptions {
    * running this request.
    */
   retries?: number;
+
+  authType?: string;
 }
 
 /**
@@ -359,15 +361,26 @@ export class Pool {
 
     let path = host.url.pathname === "/" ? "" : host.url.pathname;
     path += options.path;
+    const headers: any = {
+      "content-length": options.body ? Buffer.from(options.body).length : 0,
+    }
+
+    if (options.authType === "basic") {
+      const { u, p } = options.query;
+      if (u && p) {
+        headers['Authorization'] = 'Basic ' + Buffer.from(u + ':' + p).toString('base64');
+      }
+
+      delete options.query["u"];
+      delete options.query["p"];
+    }
     if (options.query) {
       path += "?" + querystring.stringify(options.query);
     }
 
     const req = request(
       {
-        headers: {
-          "content-length": options.body ? Buffer.from(options.body).length : 0,
-        },
+        headers: headers,
         hostname: host.url.hostname,
         method: options.method,
         path,

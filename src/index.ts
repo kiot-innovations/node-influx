@@ -23,6 +23,7 @@ const defaultOptions: IClusterConfig = Object.freeze({
   password: "root",
   schema: [],
   username: "root",
+  authType: "queryParams",
 });
 
 export * from "./builder";
@@ -89,6 +90,11 @@ export interface ISingleHostConfig extends IHostConfig {
    * A list of schema for measurements in the database.
    */
   schema?: ISchemaOptions[];
+
+  /**
+   * Auth Type to use, defaults to 'queryParams'.
+   */
+  authType?: "queryParams" | "basic";
 }
 
 export interface IClusterConfig {
@@ -121,6 +127,11 @@ export interface IClusterConfig {
    * A list of schema for measurements in the database.
    */
   schema?: ISchemaOptions[];
+
+  /**
+   * Auth Type to use, defaults to 'queryParams'.
+   */
+  authType?: "queryParams" | "basic";
 }
 
 export interface IPoint {
@@ -438,6 +449,7 @@ export class InfluxDB {
         pool: options.pool,
         schema: options.schema,
         username: options.username,
+        authType: options.authType,
       };
     }
 
@@ -1319,6 +1331,7 @@ export class InfluxDB {
       body: payload,
       method: "POST",
       path: "/write",
+      authType: this._options.authType,
       query: {
         db: database,
         p: this._options.password,
@@ -1461,7 +1474,7 @@ export class InfluxDB {
     if (!this._options.database) {
       throw new Error(
         "Attempted to run an influx query without a default" +
-          " database specified or an explicit database provided."
+        " database specified or an explicit database provided."
       );
     }
 
@@ -1476,6 +1489,7 @@ export class InfluxDB {
     return {
       method,
       path: "/query",
+      authType: this._options.authType,
       query: {
         p: this._options.password,
         u: this._options.username,
@@ -1496,7 +1510,7 @@ export class InfluxDB {
     if (!schema.database) {
       throw new Error(
         `Schema ${schema.measurement} doesn't have a database specified,` +
-          "and no default database is provided!"
+        "and no default database is provided!"
       );
     }
 
